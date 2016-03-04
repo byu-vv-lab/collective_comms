@@ -1,0 +1,110 @@
+%!TEX program = xelatex
+
+\documentclass[preprint]{sigplanconf}
+
+% The following \documentclass options may be useful:
+
+% preprint      Remove this option only once the paper is in final form.
+% 10pt          To set in 10-point type instead of 9-point.
+% 11pt          To set in 11-point type instead of 9-point.
+% numbers       To obtain numeric citation style instead of author/year.
+
+\usepackage{amsmath}
+% \usepackage{algorithmicx}
+\usepackage[noend]{algpseudocode}
+\usepackage{algorithm}
+
+\newcommand{\cL}{{\cal L}}
+
+\begin{document}
+
+\special{papersize=8.5in,11in}
+\setlength{\pdfpageheight}{\paperheight}
+\setlength{\pdfpagewidth}{\paperwidth}
+
+% \conferenceinfo{CONF 'yy}{Month d--d, 20yy, City, ST, Country}
+% \copyrightyear{20yy}
+% \copyrightdata{978-1-nnnn-nnnn-n/yy/mm}
+% \copyrightdoi{nnnnnnn.nnnnnnn}
+
+% Uncomment the publication rights you want to use.
+%\publicationrights{transferred}
+%\publicationrights{licensed}     % this is the default
+%\publicationrights{author-pays}
+
+% \titlebanner{banner above paper title}        % These are ignored unless
+% \preprintfooter{short description of paper}   % 'preprint' option specified.
+
+\title{Verification of MPI programs with tags}
+
+\authorinfo{Joshua T. Asplund}
+           {Brigham Young University}
+           {joshuata@cs.byu.edu}
+% \authorinfo{Name2\and Name3}
+%            {Affiliation2/3}
+%            {Email2/3}
+
+\maketitle
+
+\begin{abstract}
+This is the text of the abstract.
+\end{abstract}
+
+% \category{CR-number}{subcategory}{third-level}
+
+% general terms are not compulsory anymore,
+% you may leave them out
+
+% \keywords
+% keyword1, keyword2
+
+% \section{Introduction}
+
+\section{Pseudocode}
+
+\begin{algorithmic}
+\Function {GenerateMatchPairs}{S, R}
+	\State $bw \gets 0$
+	\State $tw \gets int[]$
+	\State $sw \gets int[]$
+	\ForAll{$r \in R$}
+		\If {$ (r.src = \ast) \& (r.tag = ANY) $}
+			\State $ bw \gets bw+1 $
+		\ElsIf{$ r.src = \ast $}
+			\State $ sw[r.tag] \gets sw[r.tag]+1 $
+		\ElsIf{$ r.tag = ANY $}
+			\State $ tw[r.src] \gets tw[r.src]+1 $
+			\ForAll {$ tag \in S[r.src] $}
+				\State $ matches \gets matches \union $
+			\EndFor
+		\Else
+			\State $ wildcards \gets \Call{MAX}{tw[r.src], sw[r.tag]} $
+			\State $ matches \gets s, \Call{TAKE}{S[r.src][r.tag], wildcards + 1}$
+			\State $ \Call{DEQUEUE}{S[r.src][r.tag]} $
+		\EndIf
+	\EndFor
+\EndFunction
+\end{algorithmic}
+
+% \appendix
+% \section{Appendix Title}
+
+% This is the text of the appendix, if you need one.
+
+% \acks
+
+% Acknowledgments, if needed.
+
+% We recommend abbrvnat bibliography style.
+
+\bibliographystyle{abbrvnat}
+
+% The bibliography should be embedded for final submission.
+
+\begin{thebibliography}{}
+\softraggedright
+
+\end{thebibliography}
+
+
+\end{document}
