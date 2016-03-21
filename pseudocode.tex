@@ -2,9 +2,7 @@
 
 % Inputs
 \newcommand{\inSends}{Sends}
-\newcommand{\inRecvs}{Recvs}
-\newcommand{\inSenders}{Sources}
-\newcommand{\inTags}{Tags}
+\newcommand{\inRecvs}{Receives}
 % Constants
 \newcommand{\anySrc}{\ast}
 \newcommand{\anyTag}{ANY}
@@ -14,29 +12,31 @@
 \newcommand{\take}[2]{\Call{Take}{#1,#2}}
 \newcommand{\getSrc}[1]{\Call{GetSource}{#1}}
 \newcommand{\getTag}[1]{\Call{GetTag}{#1}}
+\newcommand{\getTop}[1]{\Call{Top}{#1}}
 \newcommand{\dequeue}[1]{\Call{Dequeue}{#1}}
 % Variables
-\newcommand{\srcWild}{sw}
-\newcommand{\tagWild}{tw}
-\newcommand{\bothWild}{bw}
-\newcommand{\topRecv}{r}
-\newcommand{\recvSource}{Source}
-\newcommand{\recvTag}{Tag}
-\newcommand{\matchList}{slist}
-\newcommand{\matchSource}{src}
-\newcommand{\matchTag}{tag}
+\newcommand{\srcWild}{send\_wild}
+\newcommand{\tagWild}{tag\_wild}
+\newcommand{\bothWild}{both\_wild}
+\newcommand{\topRecv}{receive}
+\newcommand{\sends}{matches}
+\newcommand{\recvSource}{source}
+\newcommand{\recvTag}{tag}
+\newcommand{\matchList}{send\_list}
+\newcommand{\matchSource}{match\_source}
+\newcommand{\matchTag}{match\_tag}
 \newcommand{\wildCount}{wildcards}
 \newcommand{\matchQueues}{queues}
-\newcommand{\matchPairs}{matches}
-\newcommand{\sends}{sends}
+\newcommand{\matchPairs}{match\_pairs}
 
 \begin{algorithm*}
 \begin{algorithmic}[5]
 
 \Function {GenerateMatchPairs}{$ \inRecvs,\inSends $}
-	\State {$ \bothWild \gets 0 $}
-	\State {$ \tagWild \gets \emptyArray $}
+	\State {$ \matchPairs \gets \emptyset $}
 	\State {$ \srcWild \gets \emptyArray $}
+	\State {$ \tagWild \gets \emptyArray $}
+	\State {$ \bothWild \gets 0 $}
 	\ForAll {$ \topRecv \in \inRecvs $}
 		\State {$ \sends \gets \emptyset $}
 		\State {$ \recvSource \gets \getSrc{\topRecv} $}
@@ -49,7 +49,8 @@
 		\ElsIf {$ (\recvTag = \anyTag) $}
 			\State {$ \tagWild[\recvSource] \gets \tagWild[\recvSource] + 1 $}
 		\Else
-			\State {$ \sends \gets \dequeue{\matchQueues} $}
+			\State {$ \matchList \gets \getTop{\matchQueues} $}
+			\State {$ \sends \gets \dequeue{\matchList} $}
 		\EndIf
 		\ForAll {$ \matchList \in \matchQueues $}
 			\State {$ \matchSource \gets \getSrc{\matchList} $}
