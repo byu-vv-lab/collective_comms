@@ -1,0 +1,70 @@
+%!TEX root = paper.tex
+
+\begin{algorithm*}
+\begin{algorithmic}[5]
+
+% Inputs
+\newcommand{\inSends}{Sends}
+\newcommand{\inRecvs}{Recvs}
+\newcommand{\inSenders}{Sources}
+\newcommand{\inTags}{Tags}
+% Constants
+\newcommand{\anySrc}{\ast}
+\newcommand{\anyTag}{ANY}
+% Functions
+\newcommand{\filterSends}[2]{\Call{Matching}{#1,#2}}
+\newcommand{\take}[2]{\Call{Take}{#1,#2}}
+\newcommand{\getSrc}[1]{\Call{GetSource}{#1}}
+\newcommand{\getTag}[1]{\Call{GetTag}{#1}}
+% Variables
+\newcommand{\bothWild}{bw}
+\newcommand{\tagWild}{tw}
+\newcommand{\srcWild}{sw}
+\newcommand{\recv}{r}
+\newcommand{\matches}{matches}
+\newcommand{\sends}{sends}
+
+\Function {GenerateMatchPairs}{$\inRecvs,\inSends,\inSenders,\inTags$}
+	\State {$\bothWild \gets 0$}
+	\State {$\tagWild \gets int[]$}
+	\State {$\srcWild \gets int[]$}
+	\State {$ \matches \gets \emptyset $}
+	\ForAll {$ \recv \in \inRecvs $}
+		\State {$ \sends \gets \emptyset $}
+		\State {$ Source \gets \getSrc{\recv} $}
+		\State {$ Tag \gets \getTag{\recv} $}
+		\If {$(Source = \anySrc) \land (Tag = \anyTag) $}
+			\State {$ \bothWild \gets \bothWild + 1 $}
+			\ForAll {$ src \in \inSenders $}
+				\ForAll {$ tag \in \inTags $}
+					\State {$ wildcards \gets (\srcWild[tag] + \tagWild[src] + \bothWild) $}
+					\State {$ matching \gets \filterSends{\inSends}{\recv} $}
+					\State {$ \sends \gets \sends \cup \take{matching}{wildcards} $}
+				\EndFor
+			\EndFor
+		\ElsIf {$ (Source = \anySrc) $}
+			\State {$ \srcWild[Tag] \gets \srcWild[Tag] + 1 $}
+			\ForAll {$ src \in \inSenders $}
+				\State {$ wildcards \gets (\srcWild[Tag] + \tagWild[src] + \bothWild) $}
+				\State {$ matching \gets \filterSends{\inSends}{\recv} $}
+				\State {$ \sends \gets \sends \cup \take{matching}{wildcards} $}
+			\EndFor
+		\ElsIf {$ (Tag = \anyTag) $}
+			\State {$ \tagWild[Source] \gets \tagWild[Source] + 1 $}
+			\ForAll {$ tag \in \inTags $}
+				\State {$ wildcards \gets (\srcWild[tag] + \tagWild[Source] + \bothWild) $}
+				\State {$ matching \gets \filterSends{\inSends}{\recv} $}
+				\State {$ \sends \gets \sends \cup \take{matching}{wildcards} $}
+			\EndFor
+		\Else
+			\State {$ wildcards \gets ( \tagWild[Source] + \srcWild[Tag] + \bothWild ) $}
+			\State {$ \sends \gets \Call{Dequeue}{\inSends[Source][Tag]} $}
+			\State {$ matching \gets \filterSends{\inSends}{\recv} $}
+			\State {$ \sends \gets \sends \cup \take{matching}{wildcards} $}
+		\EndIf
+		\State {$ \matches \gets \matches[\recv \mapsto \sends] $}
+	\EndFor
+	\Return {$ \matches $}
+\EndFunction
+\end{algorithmic}
+\end{algorithm*}

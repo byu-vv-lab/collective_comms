@@ -10,8 +10,8 @@
 % numbers       To obtain numeric citation style instead of author/year.
 
 \usepackage{amsmath}
-% \usepackage[noend]{algpseudocode}
-\usepackage{algpseudocode}
+\usepackage[noend]{algpseudocode}
+% \usepackage{algpseudocode}
 \usepackage{algorithm}
 
 \newcommand{\cL}{{\cal L}}
@@ -62,43 +62,7 @@
 
 % \section{Pseudocode}
 
-\begin{algorithm*}
-\begin{algorithmic}
-\Function {GenerateMatchPairs}{S, R}
-	\State $bw \gets 0$
-	\State $tw \gets int[]$
-	\State $sw \gets int[]$
-	\State $ matches \gets \emptyset $
-	\ForAll{$r \in R$}
-	% TODO: Can we match with max(sw,tw) or sw+tw ?
-		\If {$ (r.src = \ast) \& (r.tag = ANY) $}
-			\State $ bw \gets bw+1 $
-			% TODO: Finish this section
-		\ElsIf{$ r.src = \ast $}
-			\State $ sw[r.tag] \gets sw[r.tag]+1 $
-			\State $ sends \gets \emptyset $
-			\ForAll {$ src \in S $}
-				\State $ wildcards \gets \Call{Max}{sw[r.tag], tw[src]} + bw $
-				\State $ sends \gets sends \cup \Call{Take}{S[src][r.tag], 1 + wildcards }$
-			\EndFor
-			\State $ matches \gets r, sends $
-		\ElsIf{$ r.tag = ANY $}
-			\State $ tw[r.src] \gets tw[r.src]+1 $
-			\State $ sends \gets \emptyset $
-			\ForAll {$ tag \in S[r.src] $}
-				\State $ wildcards \gets \Call{Max}{tw[r.src], sw[tag]} + bw $
-				\State $ sends \gets sends \cup \Call{Take}{S[r.src][tag], 1 + wildcards }$
-			\EndFor
-			\State $ matches \gets r, sends $
-		\Else
-			\State $ wildcards \gets \Call{Max}{tw[r.src], sw[r.tag]} + bw $
-			\State $ matches \gets r, \Call{Take}{S[r.src][r.tag], 1 + wildcards } $
-			\State $ \Call{Dequeue}{S[r.src][r.tag]} $
-		\EndIf
-	\EndFor
-\EndFunction
-\end{algorithmic}
-\end{algorithm*}
+\input{pseudocode}
 
 % \appendix
 % \section{Appendix Title}
