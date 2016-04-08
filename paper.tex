@@ -11,7 +11,6 @@
 
 \usepackage{amsmath}
 \usepackage[noend]{algpseudocode}
-% \usepackage{algpseudocode}
 \usepackage{algorithm}
 
 \newcommand{\cL}{{\cal L}}
@@ -44,11 +43,9 @@
 %            {Affiliation2/3}
 %            {Email2/3}
 
-% \maketitle
+\maketitle
 
-% \begin{abstract}
-% This is the text of the abstract.
-% \end{abstract}
+\input{abstract}
 
 % \category{CR-number}{subcategory}{third-level}
 
@@ -58,11 +55,13 @@
 % \keywords
 % keyword1, keyword2
 
-% \section{Introduction}
-
-% \section{Pseudocode}
-
-\input{pseudocode}
+\input{introduction}
+\input{match_pair}
+\input{collective_comms}
+\input{encoding}
+\input{empirical_study}
+\input{related_work}
+\input{conclusion}
 
 % \appendix
 % \section{Appendix Title}
@@ -86,3 +85,7 @@
 
 
 \end{document}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
