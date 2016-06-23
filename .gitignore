@@ -32,6 +32,7 @@
 *.synctex.gz
 *.synctex.gz(busy)
 *.pdfsync
+/auto
 
 ## Auxiliary and intermediate files from other packages:
 
