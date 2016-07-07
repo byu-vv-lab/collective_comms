@@ -1,10 +1,24 @@
 \section{Collective Communication Operations}
-\begin{itemize}
-\item Motivate derivation of collective comms from tags + communicators
-\item Example: broadcast
-\item Example: gather
-\item Example: barrier
-\end{itemize}
+
+\subsection{Motivate derivation of collective comms from tags + communicators}
+
+\subsection{Example: broadcast}
+The MPI broadcast operation is a one-to-many communication. It takes the message
+and copies it into the receive buffer of each process in the group. This is
+simply encoded by executing a send from the source to each process that is a
+member of the group on the group's communicator. This is paired with a blocking
+receive on each destination process in the group. We use non-blocking sends
+grouped together with all of the witnessing waits following the sends. This is
+necessary since the runtime can order the sends as it wishes in order to avoid
+locking.
+
+\subsection{Example: gather}
+The gather operation is the foil of the broadcast. The send buffer of each
+process in the group is copied into the receive buffer of the destination
+process. Each send is blocking, and the receives are non-blocking, with all of
+the waits immediately following the last receive.
+
+\subsection{Example: barrier}
 
 %%% Local Variables:
 %%% mode: latex

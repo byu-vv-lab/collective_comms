@@ -1,29 +1,53 @@
 \section{Send Modes}
 
-\begin{itemize}
-\item What are send modes?
-\item What bugs can they cause?
-\item Why are they hard to verify?
-\item Both blocking and non-blocking variants of each mode
-\end{itemize}
+\subsection{Introduction}
+% \subsubsection{What are send modes?}
+The MPI specification defines 4 distinct send modes: standard, buffered,
+synchronous, and ready. These define when the runtime marks a send as complete.
+Additionally, each of these modes has both a blocking and a non-blocking
+variant.
+% \subsubsection{What bugs can they cause?}
+Because each one behaves differently, they can introduce subtle bugs that
+are difficult to reproduce. 
+% \subsubsection{Why are they hard to verify?}
+This also introduces 8 different variations of the send command, each of which
+needs its own unique encoding strategy.
+
+% \subsubsection{Both blocking and non-blocking variants of each mode}
+To simplify our encoding, we consider a blocking receive as a non-blocking
+receive followed immediately on the same process by its witnessing receive.
 
 \subsection{Standard and Buffered Send}
-\begin{itemize}
-\item Semantics
-\item Equivalence of encodings
-\end{itemize}
+% \subsubsection{Semantics}
+Both the standard and buffered send are considered complete as soon as the
+runtime has acknowledged the message, with no guarantees about message
+reception. We also make the simplifying assumption that buffer space is
+unlimited. This allows us to use the same encoding for both modes.
+% \subsubsection{Equivalence of encodings}
 
 \subsection{Synchronous Send}
-\begin{itemize}
-\item Semantics
-\item Extension of send encoding
-\end{itemize}
+% \subsubsection{Semantics}
+The synchronous send mode requires that the message is received before the send
+is considered complete.
+% \subsubsection{Extension of send encoding}
+
+To extend our encoding to handle this, we require that the matching receive
+happens before the send's witnessing receive.
+% TODO: Example
 
 \subsection{Ready Send}
-\begin{itemize}
-\item Semantics
-\item Extension of encoding
-\end{itemize}
+% \subsubsection{Semantics}
+The ready send presents the greatest to the encoding. It is a performance
+optimization to allow the runtime to copy the message contents directly into the
+receiver's message buffer. To achieve this, it requires that the matching receive
+be posted prior to the send. If a process attempts to send a message that does
+not have a matching send waiting for it, the send results in an error.
+
+% \subsubsection{Extension of send encoding}
+To check for ready send compatibility, we add a clause where the send happens
+before its matching receive. If we can find a valid schedule that satisfies this
+clause then the program is not ready send compatible.
+% TODO: Example
 
 %%% Local Variables:
 %%% mode: latex
