@@ -10,9 +10,23 @@
 
 \input{match_pair_pseudocode}
 
-\begin{itemize}
-\item Algorithm analysis: time and space complexity
-\end{itemize}
+\subsection{Algorithm analysis}
+Let the program have $m$ processes, with at most $n$ sends or receives in a
+process.
+
+The best case for this algorithm is a program with only deterministic receives.
+In this case each receive will have one and only one matching receive. This
+means that analyzing a single process is $\mathcal{O}(n)$, so analysis of the
+entire program is $\mathcal{O}(mn)$.
+
+Conversely, the worse case is that all sends have a unique tag within their
+process and all receives are both source non-deterministic and tag
+non-deterministic. In this case there will be $\mathcal{O}(mn)$ matches per
+receive, and therefore $\mathcal{O}(m^2n^2)$ match-pairs overall. Many of these
+can be trivially discarded by remembering that two sends from the same process
+that might match the same receive must be received in program order. This would
+reduce the problem to $\mathcal{O}(m)$ matches per receive, or
+$\mathcal{O}(m^2n)$ overall.
 
 %%% Local Variables:
 %%% mode: latex

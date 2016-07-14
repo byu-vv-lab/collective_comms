@@ -14,8 +14,9 @@ This also introduces 8 different variations of the send command, each of which
 needs its own unique encoding strategy.
 
 % \subsubsection{Both blocking and non-blocking variants of each mode}
-To simplify our encoding, we consider a blocking receive as a non-blocking
-receive followed immediately on the same process by its witnessing receive.
+To remove redundant operations from our encoding, we consider a blocking receive
+as a non-blocking receive followed immediately on the same process by its
+witnessing receive.
 
 \subsection{Standard and Buffered Send}
 % \subsubsection{Semantics}
@@ -28,11 +29,12 @@ unlimited. This allows us to use the same encoding for both modes.
 \subsection{Synchronous Send}
 % \subsubsection{Semantics}
 The synchronous send mode requires that the message is received before the send
-is considered complete.
+is considered complete. This forces schedules to synchronize, allowing more
+control over how processes interleave.
 % \subsubsection{Extension of send encoding}
 
-To extend our encoding to handle this, we require that the matching receive
-happens before the send's witnessing receive.
+We extend our encoding to handle these semantics by requiring that the matching
+receive happens before the send's witnessing receive.
 % TODO: Example
 
 \subsection{Ready Send}

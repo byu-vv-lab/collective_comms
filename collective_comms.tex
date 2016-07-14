@@ -1,6 +1,10 @@
 \section{Collective Communication Operations}
 
 \subsection{Motivate derivation of collective comms from tags + communicators}
+According to the MPI specification, collective communications can be expressed
+using point-to-point operations and a reserved tag space. Most of the
+derivations follow similar patterns, so we will present a few specific examples
+rather than enumerating all of them.
 
 \subsection{Example: broadcast}
 The MPI broadcast operation is a one-to-many communication. It takes the message
@@ -19,6 +23,9 @@ process. Each send is blocking, and the receives are non-blocking, with all of
 the waits immediately following the last receive.
 
 \subsection{Example: barrier}
+A barrier guarantees that all processes in the group are synchronized at that
+point in the schedule. In our encoding this is handled as a separate operation
+as other derivations would require adding many more communication operations.
 
 %%% Local Variables:
 %%% mode: latex
