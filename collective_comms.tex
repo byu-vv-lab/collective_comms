@@ -1,6 +1,5 @@
 \section{Collective Communication Operations}
 
-\subsection{Motivate derivation of collective comms from tags + communicators}
 According to the MPI specification, collective communications can be expressed
 using point-to-point operations and a reserved tag space. Most of the
 derivations follow similar patterns, so we will present a few specific examples
@@ -17,7 +16,7 @@ necessary since the runtime can order the sends as it wishes in order to avoid
 locking.
 
 \subsection{Example: gather}
-The gather operation is the foil of the broadcast. The send buffer of each
+The gather operation is the complement of broadcast. The send buffer of each
 process in the group is copied into the receive buffer of the destination
 process. Each send is blocking, and the receives are non-blocking, with all of
 the waits immediately following the last receive.

@@ -1,17 +1,22 @@
 \begin{abstract}
-This is the text of the abstract.
+
+The Message Passing Interface (MPI) is a common programming model in high
+performance computing (HPC). The parallel nature and large scale of MPI
+programs makes them a valuable target for program verification. Existing tools
+approach the problem by verifying a small subset of the MPI specification.
+Specifically, previous static analyses only addressed point-to-point
+communication without tags. This paper presents an extension to an existing
+SMT-based approach that adds support for tagged messages and multiple
+communicators. We then show how to leverage this extension to verify programs
+that use MPI collective communication. The paper also presents an efficient
+algorithm that approximates the input match pairs using simple counting for two
+types of message non-determinism. The experimental results demonstrate that the
+new SMT encoding is capable of precisely reasoning about the behavior in a set
+of benchmarks.
+
 \end{abstract}
 
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "paper"
 %%% End:
-
-
-Message Passing Interface (MPI) is a common programming model in high performance computing (HPC). 
-Analyzing the behavior in any MPI execution is notoriously difficult because of the complexity in MPI semantics: message non-determinism and collective communication. 
-The message non-determinism leads to unexpected behavior where multiple messages with different sources and/or different tags may race in the arrival at a single receive operation. 
-MPI collective communication uses special messages for global computation in that they have to be not interrupted with the messages in point-to-point communication. 
-This paper provides an efficient SMT encoding that is able to precisely reason about MPI non-deterministic behavior and collective communication. The message non-determinism is encoded by directly using match pair (a coupling for a send and a receive where they may potentially match in the runtime) to capture the potential message communication topology. The message passing in collective communication is modeled as a set of sends and receives with special tags. Novel is that the encoding does not constrain the total order in each process; rather, it only bounds the sequential order according to MPI \textit{non-overtaking} ordering requirement. 
-This paper also gives an efficient algorithm that approximates the input match pairs using simple counting for two types of message non-determinism. 
-The experimental results demonstrate that the new SMT encoding is capable of precisely reasoning about the behavior in a set of benchmarks.
