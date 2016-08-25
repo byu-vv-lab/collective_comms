@@ -1,20 +1,26 @@
-(declare-datatypes () ((Send (mk-send (src Int)
-                                      (dest Int)
-                                      (tag Int)
-                                      (order Int)
-                                      (wait Wait)
-                                      (time Int)))
-                       (Recv (mk-recv (src Int)
-                                      (dest Int)
-                                      (tag Int)
-                                      (order Int)
-                                      (wait Wait)
-                                      (time Int)))
-                       (Wait (mk-wait (recv Recv)
-                                      (order Int)
-                                      (time Int)))
-                       (Barrier (mk-barrier (order Int)
-                                            (time Int)))))
+(declare-datatypes
+  ()
+  ((Send
+     (mk-send (src Int)
+              (dest Int)
+              (tag Int)
+              (order Int)
+              (wait Wait)
+              (time Int)))
+   (Recv
+     (mk-recv (src Int)
+              (dest Int)
+              (tag Int)
+              (order Int)
+              (wait Wait)
+              (time Int)))
+   (Wait
+     (mk-wait (recv Recv)
+              (order Int)
+              (time Int)))
+   (Barrier
+     (mk-barrier (order Int)
+                 (time Int)))))
 
 (declare-fun match (Send Recv) Bool)
 
@@ -25,7 +31,7 @@
            (= (tag r) 0))
        (= (dest s) (dest r))))
 
-; Every receive must match a send
+; TODO: Every receive must match a send
 
 ; Match rules
 (assert (forall ((s Send) (r Recv))
@@ -66,26 +72,33 @@
                    (< (order r1) (order r2)))
               (< (time r1) (time r2)))
 
-;sequential sends with common endpoints
+; Sequential sends with common endpoints
+; NOTE: This may be superfluous due to the non-overtaking rules
 (assert (forall ((s1 Send) (s2 Send))
           (=> (and (= (src s1) (src s2))
                    (= (dest s1) (dest s2))
                    (< (order s1) (order s2)))
               (< (time s1) (time s2)))))
 
-;receive happens before its paired wait
+; Receive happens before its paired wait
 (assert (forall ((r Recv) (w Wait))
           (=> (= r (recv w))
               (< (time r) (time w)))))
 
-
-;wait happens before the following send
+; Wait happens before the following send
+; NOTE: The rule will need to change for tags, but we believe it is OK for the point-to-point we currently support.
+;   The issue with tags relates to the separate run-time buffers for each destination.
+;   Different tags go to different buffers on the destination, so that effectively makes it appear that sends are reordered, even around waits (assuming those waits are send waits).
+;   This also assumes that we have send-waits (currently we do not).
+;   We will need those for send-modes.
+;   Bottom line: the rule is fine for the base point-to-point encoding where we only wait on receives and there are not tags.
+;   It must change for send-modes and tags.
 (assert (forall ((w Wait) (s Send))
           (=> (< (order w) (order s))
               (< (time w) (time s)))))
-;The above rule will need to change for tags, but we believe it is OK for the point-to-point we currently support. The issue with tags relates to the separate run-time buffers for each destination. Different tags go to different buffers on the destination, so that effectively makes it appear that sends are reordered, even around waits (assuming those waits are send waits). This also assumes that we have send-waits (currently we do not). We will need those for send-modes. Bottom line: the rule is fine for the base point-to-point encoding where we only wait on receives and there are not tags.  It must change for send-modes and tags.
 
-;receive has a nearest-enclosing barrier
+; Receive has a nearest-enclosing barrier
+; NOTE: Let’s come back to this rule. It is a little hard to understand.
 (assert (forall ((w Wait) (r Recv) (b Barrier))
           (=> (and (= r (recv w))
                    (forall ((r1 Recv) (w1 Wait))
@@ -93,9 +106,8 @@
                            (= r1 (recv w1))
                            (not (and (< (order w1) (order w)) (< (order b) (order w1)))))))
               (< (time w) (time b)))))
-;Let’s come back to the above rule. It is a little hard to understand.
 
-;barrier happens before any operation ordered after a member of the barrier
+; Barrier happens before any operation ordered after a member of the barrier
 (assert (forall ((b Barrier) (s Send))
           (=> (< (order b) (order s))
               (< (time b) (time s)))))
