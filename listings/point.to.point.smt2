@@ -1,3 +1,9 @@
+; #####################################
+; Base encoding structures
+; In this encoding, a receive from endpoint 0 is considered wildcard
+;   as is a receive with tag 0
+; #####################################
+
 (declare-datatypes
   ()
   ((Send
@@ -15,12 +21,89 @@
               (wait Wait)
               (time Int)))
    (Wait
-     (mk-wait (recv Recv)
+     (mk-wait (src Int)
               (order Int)
               (time Int)))
    (Barrier
-     (mk-barrier (order Int)
+     (mk-barrier (src Int)
+                 (count Int)
+                 (order Int)
                  (time Int)))))
+
+; #####################################
+; Base ordering rules - independent of matching
+; #####################################
+
+; Operations must come before their witnessing wait
+(assert (forall ((s Send))
+          (< (time s) (time (wait s)))))
+(assert (forall ((r Recv))
+          (< (time r) (time (wait r)))))
+
+; Enforce total order
+(assert (forall ((s1 Send) (s2 Send))
+          (=> (= (time s1) (time s2)
+              (= s1 s2)))))
+(assert (forall ((r1 Recv) (r2 Recv))
+          (=> (= (time r1) (time r2)
+              (= r1 r2)))))
+(assert (forall ((w1 Wait) (w2 Wait))
+          (=> (= (time w1) (time w2)
+              (= w1 w2)))))
+(assert (forall ((s Send) (r Recv))
+          (not (= (time s) (time r)))))
+(assert (forall ((s Send) (w Wait))
+          (not (= (time s) (time w)))))
+(assert (forall ((s Send) (b Barrier))
+          (not (= (time s) (time b)))))
+(assert (forall ((r Recv) (w Wait))
+          (not (= (time r) (time w)))))
+(assert (forall ((r Recv) (b Barrier))
+          (not (= (time r) (time b)))))
+
+; Barriers happen simultaneously on all processes
+(assert (forall ((b1 barrier) (b2 Barrier))
+          (=> (= (count b1) (count b2))
+              (= (time b1) (time b2)))))
+
+; No operation may be moved across a barrier
+(assert (forall ((b Barrier) (s Send))
+          (=> (and (= (src b) (src s))
+                   (< (order b) (order s)))
+              (< (time b) (time s)))))
+(assert (forall ((b Barrier) (r Recv))
+          (=> (and (= (src b) (dest r))
+                      (< (order b) (order r)))
+              (< (time b) (time r)))))
+(assert (forall ((b Barrier) (w Wait))
+          (=> (and (= (src b) (src w))
+                   (< (order b) (order w)))
+              (< (time b) (time w)))))
+(assert (forall ((b Barrier) (b1 Barrier))
+          (=> (< (count b) (count b1))
+              (< (time b) (time b1)))))
+
+; Receives stay ordered
+; FIXME: Witnessing waits must stay ordered, but do the receives need to?
+(assert (forall ((r1 Recv) (r2 Recv))
+          (=> (and (= (dest r1) (dest r2))
+                   (< (order r1) (order r2)))
+              (< (time r1) (time r2)))
+(assert (forall ((r1 Recv) (r2 Recv))
+          (=> (and (= (dest r1) (dest r2))
+                   (< (order (wait r1)) (order (wait r2))))
+              (< (time (wait r1)) (time (wait r2))))
+
+; Sends cannot move beyond recieves
+; FIXME: How late can we move a sends wait? How early can we move the send?
+(assert (forall ((s Send) (r Recv))
+          (=> (and (= (src s) (dest r))
+                   (< (order r) (order s))
+              (< (time r) (time s))))))
+
+; #####################################
+; Matching rules
+; #####################################
 
 (declare-fun match (Send Recv) Bool)
 
@@ -31,12 +114,20 @@
            (= (tag r) 0))
        (= (dest s) (dest r))))
 
-; TODO: Every receive must match a send
-
-; Match rules
+; Match rules must hold
 (assert (forall ((s Send) (r Recv))
           (=> (match s r)
               (canmatch s r))))
+
+; Every receive must match a send
+(assert (forall ((r Recv))
+          (not (forall ((s Send))
+                 (not (match s r))))))
+
+; A send must occur before the enclosing wait of its receive
+(assert (forall ((s Send) (r Recv))
+          (=> (match s r)
+              (< (time s) (time (wait r))))))
 
 ; Only one send per receive
 (assert (forall ((s1 Send) (s2 Send) (r Recv))
@@ -60,33 +151,16 @@
                          (< (time r1) (time r2)))))
               (< (time s1) (time s2))))))
 
-; Sends cannot move beyond recieves
-(assert (forall ((s Send) (r Recv))
-          (=> (and (= (src s) (dest r))
-                   (< (order r) (order s))
-              (< (time r) (time s))))))
-
-; Receives stay ordered
-(assert (forall ((r1 Recv) (r2 Recv))
-          (=> (and (= (dest r1) (dest r2))
-                   (< (order r1) (order r2)))
-              (< (time r1) (time r2)))
-
 ; Sequential sends with common endpoints
-; NOTE: This may be superfluous due to the non-overtaking rules
+; FIXME: This may be superfluous due to the non-overtaking rules
 (assert (forall ((s1 Send) (s2 Send))
           (=> (and (= (src s1) (src s2))
                    (= (dest s1) (dest s2))
                    (< (order s1) (order s2)))
               (< (time s1) (time s2)))))
 
-; Receive happens before its paired wait
-(assert (forall ((r Recv) (w Wait))
-          (=> (= r (recv w))
-              (< (time r) (time w)))))
-
 ; Wait happens before the following send
-; NOTE: The rule will need to change for tags, but we believe it is OK for the point-to-point we currently support.
+; FIXME: The rule will need to change for tags, but we believe it is OK for the point-to-point we currently support.
 ;   The issue with tags relates to the separate run-time buffers for each destination.
 ;   Different tags go to different buffers on the destination, so that effectively makes it appear that sends are reordered, even around waits (assuming those waits are send waits).
 ;   This also assumes that we have send-waits (currently we do not).
@@ -96,30 +170,3 @@
 (assert (forall ((w Wait) (s Send))
           (=> (< (order w) (order s))
               (< (time w) (time s)))))
-
-; Receive has a nearest-enclosing barrier
-; NOTE: Let’s come back to this rule. It is a little hard to understand.
-(assert (forall ((w Wait) (r Recv) (b Barrier))
-          (=> (and (= r (recv w))
-                   (forall ((r1 Recv) (w1 Wait))
-                      (and (not (= r r1))
-                           (= r1 (recv w1))
-                           (not (and (< (order w1) (order w)) (< (order b) (order w1)))))))
-              (< (time w) (time b)))))
-
-; Barrier happens before any operation ordered after a member of the barrier
-(assert (forall ((b Barrier) (s Send))
-          (=> (< (order b) (order s))
-              (< (time b) (time s)))))
-
-(assert (forall ((b Barrier) (r Recv))
-          (=> (< (order b) (order r))
-              (< (time b) (time r)))))
-
-(assert (forall ((b Barrier) (w Wait))
-          (=> (< (order b) (order w))
-              (< (time b) (time w)))))
-
-(assert (forall ((b Barrier) (b1 Barrier))
-          (=> (< (order b) (order b1))
-              (< (time b) (time b1)))))

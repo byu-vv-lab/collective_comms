@@ -10,7 +10,6 @@
                    (< (order s) (order r)))
               (< (time s) (time r)))))
 
-
 ; Zero buffer semantics: send happens before a member of barrier on a common process
 (assert (forall ((s Send) (b Barrier))
           (=> (< (order s) (order b))
