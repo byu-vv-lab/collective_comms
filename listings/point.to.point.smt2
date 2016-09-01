@@ -140,16 +140,16 @@
               (= r1 r2))))
 
 ; Non-overtaking sends
-(assert (forall ((s1 Send) (s2 Send) (r2 Receive))
+(assert (forall ((s1 Send) (s2 Send) (r2 Recv))
           (=> (and (= (src s1) (src s2))
                    (canmatch s1 r2)
                    (canmatch s2 r2)
-                   (match s2 r2)
-                   (< (order s1) (order s2)
-                   (forall ((r1 Receive))
+                   (< (order s1) (order s2))
+                   (match s2 r2))
+              (and (< (time s1) (time s2))
+                   (forall ((r1 Recv))
                      (=> (match s1 r1)
-                         (< (time r1) (time r2)))))
-              (< (time s1) (time s2))))))
+                         (< (time r1) (time r2))))))))
 
 ; Sequential sends with common endpoints
 ; FIXME: This may be superfluous due to the non-overtaking rules
