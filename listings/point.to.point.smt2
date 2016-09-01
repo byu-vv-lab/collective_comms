@@ -151,14 +151,6 @@
                      (=> (match s1 r1)
                          (< (time r1) (time r2))))))))
 
-; Sequential sends with common endpoints
-; FIXME: This may be superfluous due to the non-overtaking rules
-(assert (forall ((s1 Send) (s2 Send))
-          (=> (and (= (src s1) (src s2))
-                   (= (dest s1) (dest s2))
-                   (< (order s1) (order s2)))
-              (< (time s1) (time s2)))))
-
 ; Wait happens before the following send
 ; FIXME: The rule will need to change for tags, but we believe it is OK for the point-to-point we currently support.
 ;   The issue with tags relates to the separate run-time buffers for each destination.
